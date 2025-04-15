@@ -6,6 +6,7 @@ import com.google.inject.Inject;
 import org.w3c.dom.Document;
 import picocli.CommandLine;
 import xades4j.production.*;
+import xades4j.properties.AllDataObjsCommitmentTypeProperty;
 import xades4j.properties.DataObjectDesc;
 import xades4j.providers.KeyingDataProvider;
 
@@ -79,7 +80,7 @@ public class SignCommand implements Callable<Integer> { ;
         }
 
         signer.sign(
-            new SignedDataObjects(dataToSign),
+            new SignedDataObjects(dataToSign).withCommitmentType(AllDataObjsCommitmentTypeProperty.proofOfApproval()),
             outputDocument
         );
 

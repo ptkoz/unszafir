@@ -3,8 +3,11 @@ package Unszafir.Signatures;
 import com.google.inject.Inject;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
+import xades4j.algorithms.CanonicalXMLWithComments;
+import xades4j.algorithms.CanonicalXMLWithoutComments;
 import xades4j.production.EnvelopedXmlObject;
 import xades4j.properties.DataObjectDesc;
+import xades4j.properties.DataObjectFormatProperty;
 
 import javax.xml.parsers.DocumentBuilder;
 import java.io.File;
@@ -25,7 +28,8 @@ public class InputDocumentFactory {
             outputDocument.importNode(documentToSign.getDocumentElement(), true),
             "text/xml",
             null
-        );
+        ).withDataObjectFormat(new DataObjectFormatProperty("text/xml")).withTransform(new CanonicalXMLWithoutComments());
+
     }
 
     private File getFileForPath(String filePath) throws InvalidFileException {
