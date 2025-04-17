@@ -1,8 +1,7 @@
 package Unszafir.Cli;
 
-import Unszafir.Helpers.CertificateExceptionHandler;
 import Unszafir.Signatures.*;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 import org.w3c.dom.Document;
 import picocli.CommandLine;
 import xades4j.production.*;
@@ -11,7 +10,6 @@ import xades4j.properties.DataObjectDesc;
 import xades4j.providers.KeyingDataProvider;
 
 import java.io.File;
-import java.security.ProviderException;
 import java.util.concurrent.Callable;
 
 @CommandLine.Command(
@@ -51,34 +49,30 @@ public class SignCommand implements Callable<Integer> { ;
 
     @Override
     public Integer call() throws Exception {
-        KeyingDataProvider keyingDataProvider = certificateProviderFactory.createKeyingDataProvider(pkcs11Module, pkcs11SlotIndex);
         Document outputDocument = outputDocumentService.createOutputDocument();
-        XadesSigner signer = signerFactory.createXadesSigner(keyingDataProvider);
+        KeyingDataProvider keyingDataProvider;
         DataObjectDesc dataToSign;
 
         try {
+            keyingDataProvider = certificateProviderFactory.createKeyingDataProvider(pkcs11Module, pkcs11SlotIndex);
             dataToSign = inputDocumentFactory.createDataObjectForFile(inputFile, outputDocument);
-        } catch(InvalidFileException e) {
+        } catch(InvalidFileException | InvalidProviderException e) {
             ui.displayError(e.getMessage());
             return 1;
         }
 
         try {
-            if (!ui.promptSignatureCreation(keyingDataProvider.getSigningCertificateChain().getFirst(), inputFile)) {
+            if (!ui.promptSignatureCreation(certificateProviderFactory.extractCertificate(keyingDataProvider), inputFile)) {
                 ui.confirmCancellation();
                 return 0;
             }
             ui.confirmSigning();;
-        } catch (ProviderException e) {
-            String message = CertificateExceptionHandler.getMessageForProviderException(e, pkcs11SlotIndex);
-            if (message != null) {
-                ui.displayError(message);
-                return 1;
-            }
-
-            throw e;
+        } catch (InvalidProviderException e) {
+            ui.displayError(e.getMessage());
+            return 1;
         }
 
+        XadesSigner signer = signerFactory.createXadesSigner(keyingDataProvider);
         signer.sign(
             new SignedDataObjects(dataToSign).withCommitmentType(AllDataObjsCommitmentTypeProperty.proofOfApproval()),
             outputDocument

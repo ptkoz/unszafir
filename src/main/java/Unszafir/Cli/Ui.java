@@ -1,8 +1,6 @@
 package Unszafir.Cli;
 
-import Unszafir.Signatures.UnableToSaveException;
-import com.google.inject.Inject;
-
+import javax.inject.Inject;
 import javax.annotation.Nullable;
 import java.io.Console;
 import java.security.cert.X509Certificate;

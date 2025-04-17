@@ -1,9 +1,9 @@
 package Unszafir.Signatures;
 
 import Unszafir.Cli.Ui;
-import com.google.inject.Inject;
 import xades4j.providers.impl.KeyStoreKeyingDataProvider;
 
+import javax.inject.Inject;
 import java.security.cert.X509Certificate;
 
 public class PinProvider implements KeyStoreKeyingDataProvider.KeyStorePasswordProvider, KeyStoreKeyingDataProvider.KeyEntryPasswordProvider {

@@ -1,6 +1,6 @@
 package Unszafir.Signatures;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 import org.w3c.dom.Document;
 
 import javax.xml.parsers.DocumentBuilder;

@@ -2,12 +2,12 @@ package Unszafir;
 
 import Unszafir.Cli.ListCommand;
 import Unszafir.Cli.SignCommand;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.util.Providers;
+import dagger.Component;
+import dagger.Module;
+import dagger.Provides;
 import picocli.CommandLine;
 
+import javax.annotation.Nullable;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -22,36 +22,50 @@ import java.io.Console;
     description = "Unszafir ",
     subcommands = {CommandLine.HelpCommand.class}
 )
+
+
 public class Unszafir {
     public static void main(String[] args) {
-        Injector injector = Guice.createInjector(new UnszafirModule());
-
-        System.exit(
-            new CommandLine(injector.getInstance(Unszafir.class))
-                .addSubcommand(injector.getInstance(ListCommand.class))
-                .addSubcommand(injector.getInstance(SignCommand.class))
-                .execute(args)
-        );
+        CliApplication cliApplication = DaggerCliApplication.create();
+        System.exit(cliApplication.getCommandLine().execute(args));
     }
 }
 
-class UnszafirModule extends AbstractModule {
-    private final DocumentBuilder documentBuilder;
-    private final Transformer transformer;
+@Component(modules = {UnszafirModule.class})
+interface CliApplication {
+    CommandLine getCommandLine();
+}
 
-    UnszafirModule() {
+@Module
+class UnszafirModule {
+    @Provides
+    CommandLine provideCommandLine(ListCommand listCommand, SignCommand signCommand) {
+        //noinspection InstantiationOfUtilityClass
+        return new CommandLine(new Unszafir())
+            .addSubcommand(listCommand)
+            .addSubcommand(signCommand);
+    }
+
+    @Provides
+    @Nullable Console provideConsole() {
+        return System.console();
+    }
+
+    @Provides
+    DocumentBuilder provideDocumentBuilder() {
         try {
-            this.documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            this.transformer = TransformerFactory.newInstance().newTransformer();
-        } catch (ParserConfigurationException | TransformerConfigurationException e) {
+            return DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
             throw new RuntimeException(e);
         }
     }
 
-    @Override
-    protected void configure() {
-        bind(Console.class).toProvider(Providers.of(System.console()));
-        bind(DocumentBuilder.class).toInstance(documentBuilder);
-        bind(Transformer.class).toInstance(transformer);
+    @Provides
+    Transformer provideTransformer() {
+        try {
+            return TransformerFactory.newInstance().newTransformer();
+        } catch (TransformerConfigurationException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -1,9 +1,8 @@
 package Unszafir.Signatures;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
-import xades4j.algorithms.CanonicalXMLWithComments;
 import xades4j.algorithms.CanonicalXMLWithoutComments;
 import xades4j.production.EnvelopedXmlObject;
 import xades4j.properties.DataObjectDesc;

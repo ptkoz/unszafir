@@ -1,11 +1,10 @@
 package Unszafir.Cli;
 
-import Unszafir.Helpers.CertificateExceptionHandler;
 import Unszafir.Signatures.CertificateProviderFactory;
-import com.google.inject.Inject;
+import Unszafir.Signatures.InvalidProviderException;
 import picocli.CommandLine;
 
-import java.security.ProviderException;
+import javax.inject.Inject;
 import java.util.concurrent.Callable;
 
 @CommandLine.Command(
@@ -32,19 +31,14 @@ public class ListCommand implements Callable<Integer> {
     public Integer call() throws Exception {
         try {
             ui.displayCertificate(
-                certificateProviderFactory
-                    .createKeyingDataProvider(pkcs11Module, pkcs11SlotIndex)
-                    .getSigningCertificateChain()
-                    .getFirst()
+                certificateProviderFactory.extractCertificate(
+                    certificateProviderFactory
+                        .createKeyingDataProvider(pkcs11Module, pkcs11SlotIndex)
+                )
             );
-        } catch (ProviderException e) {
-            String message = CertificateExceptionHandler.getMessageForProviderException(e, pkcs11SlotIndex);
-            if (message != null) {
-                ui.displayError(message);
-                return 1;
-            }
-
-            throw e;
+        } catch (InvalidProviderException e) {
+            ui.displayError(e.getMessage());
+            return 1;
         }
 
 
