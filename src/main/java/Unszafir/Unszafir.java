@@ -1,6 +1,7 @@
 package Unszafir;
 
 import Unszafir.Cli.ListCommand;
+import Unszafir.Cli.MainCommand;
 import Unszafir.Cli.SignCommand;
 import dagger.Component;
 import dagger.Module;
@@ -39,11 +40,8 @@ interface CliApplication {
 @Module
 class UnszafirModule {
     @Provides
-    CommandLine provideCommandLine(ListCommand listCommand, SignCommand signCommand) {
-        //noinspection InstantiationOfUtilityClass
-        return new CommandLine(new Unszafir())
-            .addSubcommand(listCommand)
-            .addSubcommand(signCommand);
+    CommandLine provideCommandLine(MainCommand mainCommand, ListCommand listCommand, SignCommand signCommand) {
+        return new CommandLine(mainCommand).addSubcommand(listCommand).addSubcommand(signCommand);
     }
 
     @Provides

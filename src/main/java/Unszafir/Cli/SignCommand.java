@@ -16,12 +16,9 @@ import java.util.concurrent.Callable;
     name = "sign",
     description = "Create signature for given file."
 )
-public class SignCommand implements Callable<Integer> { ;
-    @CommandLine.Option(names = {"-m", "--module"}, description = "Path to PKCS#11 library.", required = true)
-    String pkcs11Module;
-
-    @CommandLine.Option(names = {"-s", "--slot"}, description = "The index of the PKCS#11 slot to use, default is 0.", defaultValue = "0")
-    int pkcs11SlotIndex;
+public class SignCommand implements Callable<Integer> {
+    @CommandLine.ParentCommand
+    private MainCommand mainCommand;
 
     @CommandLine.Parameters(index = "0", description = "The file to be signed")
     String inputFile;
@@ -54,7 +51,7 @@ public class SignCommand implements Callable<Integer> { ;
         DataObjectDesc dataToSign;
 
         try {
-            keyingDataProvider = certificateProviderFactory.createKeyingDataProvider(pkcs11Module, pkcs11SlotIndex);
+            keyingDataProvider = certificateProviderFactory.createKeyingDataProvider(mainCommand.pkcs11Module, mainCommand.pkcs11SlotIndex);
             dataToSign = inputDocumentFactory.createDataObjectForFile(inputFile, outputDocument);
         } catch(InvalidFileException | InvalidProviderException e) {
             ui.displayError(e.getMessage());
@@ -66,7 +63,7 @@ public class SignCommand implements Callable<Integer> { ;
                 ui.confirmCancellation();
                 return 0;
             }
-            ui.confirmSigning();;
+            ui.confirmSigning();
         } catch (InvalidProviderException e) {
             ui.displayError(e.getMessage());
             return 1;
