@@ -52,7 +52,7 @@ public class CertificateProviderFactory {
 
             throw new InvalidProviderException("Unexpected error when reading certificate chain: " + e.getMessage());
         } catch (Exception e) {
-            throw new InvalidProviderException("Unexpected error when reading certificate chain" + e.getMessage());
+            throw new InvalidProviderException("Unexpected error when reading certificate chain: " + e.getMessage());
         }
     }
 }
