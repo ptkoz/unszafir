@@ -4,7 +4,7 @@ plugins {
     id("com.github.ben-manes.versions") version "0.52.+"
 }
 
-group = "eu.klamrowy"
+group = "Unszafir"
 version = "1.0.0"
 
 repositories {
@@ -36,6 +36,16 @@ tasks.named<JavaExec>("run") {
     )
     outputs.upToDateWhen { false }
     standardInput = System.`in`
+}
+
+tasks.withType<Jar> {
+    manifest {
+        attributes(
+            "Main-Class" to application.mainClass.get(),
+            "Implementation-Title" to project.name,
+            "Implementation-Version" to project.version
+        )
+    }
 }
 
 tasks.test {

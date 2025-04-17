@@ -9,6 +9,8 @@ import dagger.Provides;
 import picocli.CommandLine;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -16,14 +18,6 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import java.io.Console;
-
-@CommandLine.Command(
-    name = "unszafir",
-    mixinStandardHelpOptions = true,
-    description = "Unszafir ",
-    subcommands = {CommandLine.HelpCommand.class}
-)
-
 
 public class Unszafir {
     public static void main(String[] args) {
@@ -33,6 +27,7 @@ public class Unszafir {
 }
 
 @Component(modules = {UnszafirModule.class})
+@Singleton
 interface CliApplication {
     CommandLine getCommandLine();
 }
@@ -40,16 +35,28 @@ interface CliApplication {
 @Module
 class UnszafirModule {
     @Provides
-    CommandLine provideCommandLine(MainCommand mainCommand, ListCommand listCommand, SignCommand signCommand) {
-        return new CommandLine(mainCommand).addSubcommand(listCommand).addSubcommand(signCommand);
+    @Singleton
+    CommandLine provideCommandLine(MainCommand mainCommand, ListCommand listCommand, SignCommand signCommand, VersionProvider versionProvider) {
+        CommandLine cli = new CommandLine(mainCommand)
+            .addSubcommand(listCommand)
+            .addSubcommand(signCommand);
+
+        cli.getCommandSpec()
+            .name(versionProvider.getName())
+            .version(versionProvider.getVersion());
+
+        return cli;
     }
 
     @Provides
-    @Nullable Console provideConsole() {
+    @Singleton
+    @Nullable
+    Console provideConsole() {
         return System.console();
     }
 
     @Provides
+    @Singleton
     DocumentBuilder provideDocumentBuilder() {
         try {
             return DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -65,5 +72,28 @@ class UnszafirModule {
         } catch (TransformerConfigurationException e) {
             throw new RuntimeException(e);
         }
+    }
+}
+
+class VersionProvider {
+    private Package pkg;
+
+    @Inject
+    public VersionProvider() {
+        this.pkg = Unszafir.class.getPackage();
+    }
+
+    public String getName() {
+        return (pkg != null && pkg.getImplementationVersion() != null)
+            ? pkg.getImplementationTitle()
+            : "[app]";
+    }
+
+    public String getVersion() {
+        String version = (pkg != null && pkg.getImplementationVersion() != null)
+            ? pkg.getImplementationVersion()
+            : "dev";
+
+        return getName() + " " + version;
     }
 }
